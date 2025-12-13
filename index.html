@@ -437,23 +437,32 @@ function animate(){
 }
 animate();
 
-// --- FORCE RESIZE & FIRST RENDER FIX ---
-function forceResize() {
-  const w = canvas.clientWidth;
-  const h = canvas.clientHeight;
-  if (w > 0 && h > 0) {
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+  function animate(){
+    requestAnimationFrame(animate);
+    controls.update();
     renderer.render(scene, camera);
   }
-}
+  animate();
 
-setTimeout(forceResize, 100);
-setTimeout(forceResize, 300);
-setTimeout(forceResize, 600);
+  // --- FORCE RESIZE & FIRST RENDER FIX ---
+  function forceResize() {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    if (w > 0 && h > 0) {
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+    }
+  }
 
-window.addEventListener("resize", forceResize);
+  setTimeout(forceResize, 100);
+  setTimeout(forceResize, 300);
+  setTimeout(forceResize, 600);
+  window.addEventListener("resize", forceResize);
+</script>
+</body>
+</html>
 
     
   </script>
