@@ -430,19 +430,7 @@
       renderer.render(scene, camera);
     }
     animate();
-function animate(){
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}
-animate();
 
-  function animate(){
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-  }
-  animate();
 
   // --- FORCE RESIZE & FIRST RENDER FIX ---
   function forceResize() {
