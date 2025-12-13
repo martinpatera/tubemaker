@@ -4,8 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TUBEMAKER™ – 3D Configurator MVP</title>
+  <link rel="icon" href="data:,">
 
-  <!-- ✅ IMPORTANT: makes "three" and "three/addons/*" resolvable in the browser -->
+  <!-- ✅ GitHub Pages + browser module fix:
+       OrbitControls interně importuje "three" => vyřeší tohle importmap -->
   <script type="importmap">
   {
     "imports": {
@@ -16,46 +18,115 @@
   </script>
 
   <style>
-    :root { --bg:#0b0d12; --panel:#111523; --text:#e9edf7; --muted:#98a2b3; --accent:#0619f5; }
-    html,body { height:100%; margin:0; background:var(--bg); color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
-    .wrap { display:grid; grid-template-columns: 360px 1fr; height:100vh; }
-    .panel { padding:18px; border-right:1px solid rgba(255,255,255,.08);
-      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)); overflow:auto; }
-    .brand { display:flex; gap:10px; align-items:baseline; margin-bottom:14px; }
-    .brand h1 { margin:0; font-size:18px; letter-spacing:.2px; }
-    .brand .sub { font-size:12px; color:var(--muted); }
-    .card { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
-      border-radius:14px; padding:14px; margin:12px 0; }
-    .row { display:grid; grid-template-columns: 1fr 120px; align-items:center; gap:10px; margin:10px 0; }
-    label { font-size:12px; color:var(--muted); }
-    select,input[type="range"],input[type="color"],button { width:100%; }
-    input[type="range"]{ accent-color:var(--accent); }
-    select,button{ background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
-      color:var(--text); border-radius:10px; padding:10px; }
-    button{ cursor:pointer; }
-    button.primary{ background:var(--accent); border-color:transparent; }
-    .value{ font-variant-numeric: tabular-nums; text-align:right; color:var(--text); font-size:12px; }
-    .canvas { position:relative; height:100%; min-height:700px; }
-    #c { width:100%; height:100%; display:block; }
-    .hud {
-      position:absolute; left:14px; bottom:14px;
-      background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.10);
-      backdrop-filter: blur(6px);
-      border-radius:14px; padding:10px 12px; max-width:560px;
-      font-size:12px; color:var(--muted);
+    :root{
+      --bg:#ffffff;
+      --panel:#ffffff;
+      --text:#0b0d12;
+      --muted:#667085;
+      --accent:#0619f5;
+      --border: rgba(0,0,0,.10);
+      --card: rgba(0,0,0,.02);
     }
-    .hud b{ color:var(--text); }
-    .pill{ display:inline-flex; gap:8px; align-items:center; padding:5px 10px; border-radius:999px;
-      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); margin-right:8px; }
-    .tiny{ font-size:11px; opacity:.9; }
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    /* Layout */
+    .wrap{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      height:100vh;
+      background: var(--bg);
+    }
+    .panel{
+      padding:18px;
+      border-right:1px solid var(--border);
+      background:rgba(255,255,255,.92);
+      overflow:auto;
+    }
+    .brand{ display:flex; gap:10px; align-items:baseline; margin-bottom:14px; }
+    .brand h1{ margin:0; font-size:18px; letter-spacing:.2px; }
+    .brand .sub{ font-size:12px; color:var(--muted); }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      margin:12px 0;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 120px;
+      align-items:center;
+      gap:10px;
+      margin:10px 0;
+    }
+    label{ font-size:12px; color:var(--muted); }
+    .value{
+      font-variant-numeric: tabular-nums;
+      text-align:right;
+      color:var(--text);
+      font-size:12px;
+    }
+
+    select, input[type="range"], input[type="color"], button{ width:100%; }
+    input[type="range"]{ accent-color:var(--accent); }
+
+    select, button{
+      background:rgba(0,0,0,.03);
+      border:1px solid rgba(0,0,0,.12);
+      color:var(--text);
+      border-radius:10px;
+      padding:10px;
+    }
+    button{ cursor:pointer; }
+    button.primary{ background:var(--accent); border-color:transparent; color:#fff; }
+
+    .tiny{ font-size:11px; color:var(--muted); }
+
+    /* Canvas */
+    .canvas{ position:relative; height:100%; min-height:700px; background:#fff; }
+    #c{ width:100%; height:100%; display:block; }
+
+    .hud{
+      position:absolute; left:14px; bottom:14px;
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(0,0,0,.10);
+      backdrop-filter: blur(8px);
+      border-radius:14px;
+      padding:10px 12px;
+      max-width:560px;
+      font-size:12px;
+      color:#475467;
+      box-shadow: 0 10px 30px rgba(16,24,40,.10);
+    }
+    .hud b{ color:#101828; }
+    .pill{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:5px 10px;
+      border-radius:999px;
+      background:rgba(0,0,0,.03);
+      border:1px solid rgba(0,0,0,.08);
+      margin-right:8px;
+      color:#344054;
+    }
+
     @media (max-width: 920px){
       .wrap{ grid-template-columns: 1fr; grid-template-rows: auto 1fr; height:100vh; }
-      .panel{ border-right:none; border-bottom:1px solid rgba(255,255,255,.08); }
+      .panel{ border-right:none; border-bottom:1px solid var(--border); }
       .canvas{ min-height:520px; }
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <div class="panel">
@@ -77,25 +148,25 @@
         <div class="row">
           <label for="diameter">Průměr (mm)</label>
           <div class="value"><span id="diameterVal"></span></div>
-          <input id="diameter" type="range" min="35" max="120" step="1" value="77" />
+          <input id="diameter" type="range" min="35" max="140" step="1" value="77" />
         </div>
 
         <div class="row">
           <label for="height">Celková výška (mm)</label>
           <div class="value"><span id="heightVal"></span></div>
-          <input id="height" type="range" min="50" max="300" step="1" value="160" />
+          <input id="height" type="range" min="50" max="320" step="1" value="160" />
         </div>
 
         <div class="row" id="telRow">
-          <label for="telRatio">Teleskop: poměr výšek</label>
+          <label for="telRatio">Teleskop: výška víka</label>
           <div class="value"><span id="telRatioVal"></span></div>
-          <input id="telRatio" type="range" min="20" max="80" step="1" value="35" />
+          <input id="telRatio" type="range" min="45" max="85" step="1" value="70" />
         </div>
 
         <div class="row">
           <label for="open">Otevření</label>
           <div class="value"><span id="openVal"></span></div>
-          <input id="open" type="range" min="0" max="100" step="1" value="0" />
+          <input id="open" type="range" min="0" max="100" step="1" value="10" />
         </div>
       </div>
 
@@ -135,6 +206,7 @@
     import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
     const $ = (id) => document.getElementById(id);
+
     const ui = {
       type: $("type"),
       diameter: $("diameter"),
@@ -157,53 +229,165 @@
     const pct = (n)=> `${Math.round(n)}%`;
 
     const canvas = $("c");
-
     const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x0b0d12, 1);
+    renderer.setClearColor(0xffffff, 1);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
-    camera.position.set(0, 140, 340);
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 3000);
+    camera.position.set(0, 150, 420);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(0, 80, 0);
+    controls.target.set(0, 90, 0);
 
-    // Studio lights
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const key = new THREE.DirectionalLight(0xffffff, 0.9);
-    key.position.set(200, 300, 180);
+    // Lights: soft studio on white
+    scene.add(new THREE.AmbientLight(0xffffff, 0.90));
+
+    const key = new THREE.DirectionalLight(0xffffff, 0.85);
+    key.position.set(180, 260, 160);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024,1024);
+    key.shadow.camera.near = 10;
+    key.shadow.camera.far = 1400;
+    key.shadow.camera.left = -340;
+    key.shadow.camera.right = 340;
+    key.shadow.camera.top = 340;
+    key.shadow.camera.bottom = -340;
     scene.add(key);
+
     const fill = new THREE.DirectionalLight(0xffffff, 0.35);
-    fill.position.set(-220, 120, -160);
+    fill.position.set(-220, 150, -140);
     scene.add(fill);
 
-    // Ground
+    // Shadow catcher ground (invisible plane with shadow)
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(1200,1200),
-      new THREE.MeshStandardMaterial({ color: 0x0b0d12, metalness:0, roughness:1 })
+      new THREE.PlaneGeometry(2000, 2000),
+      new THREE.ShadowMaterial({ opacity: 0.18 })
     );
     ground.rotation.x = -Math.PI/2;
     ground.position.y = 0;
+    ground.receiveShadow = true;
     scene.add(ground);
 
     const root = new THREE.Group();
     scene.add(root);
+
     const parts = { base:null, collar:null, lid:null, body:null };
 
-    function makeMaterial(kind, hex){
+    function setShadows(obj, cast=true, receive=false){
+      obj.traverse((c)=>{
+        if(c.isMesh){
+          c.castShadow = cast;
+          c.receiveShadow = receive;
+        }
+      });
+      return obj;
+    }
+
+    function makeMaterial(kind, hex, side=THREE.FrontSide){
       const color = new THREE.Color(hex);
-      if(kind === "metal") return new THREE.MeshStandardMaterial({ color, metalness:0.85, roughness:0.22 });
-      if(kind === "satin") return new THREE.MeshStandardMaterial({ color, metalness:0.05, roughness:0.35 });
-      return new THREE.MeshStandardMaterial({ color, metalness:0.0, roughness:0.78 });
+      let mat;
+      if(kind === "metal") mat = new THREE.MeshStandardMaterial({ color, metalness:0.85, roughness:0.22 });
+      else if(kind === "satin") mat = new THREE.MeshStandardMaterial({ color, metalness:0.05, roughness:0.35 });
+      else mat = new THREE.MeshStandardMaterial({ color, metalness:0.00, roughness:0.85 });
+      mat.side = side;
+      return mat;
+    }
+
+    function darkerHex(hex, mul=0.92){
+      const c = new THREE.Color(hex);
+      c.multiplyScalar(mul);
+      return "#" + c.getHexString();
+    }
+
+    // Build helpers: hollow cup (spodek) and hollow cap (víko)
+    function makeCup({ rOuter, height, wall=2.2, bottom=2.2, matOuter, matInner, seg=128 }){
+      const g = new THREE.Group();
+
+      const outerWall = new THREE.Mesh(
+        new THREE.CylinderGeometry(rOuter, rOuter, height, seg, 1, true),
+        matOuter
+      );
+      outerWall.position.y = height/2;
+
+      const rInner = Math.max(1, rOuter - wall);
+      const innerH = Math.max(1, height - bottom);
+      const innerWall = new THREE.Mesh(
+        new THREE.CylinderGeometry(rInner, rInner, innerH, seg, 1, true),
+        matInner
+      );
+      innerWall.position.y = bottom + innerH/2;
+
+      const bottomDisk = new THREE.Mesh(
+        new THREE.CylinderGeometry(rOuter, rOuter, bottom, seg),
+        matOuter
+      );
+      bottomDisk.position.y = bottom/2;
+
+      g.add(outerWall, innerWall, bottomDisk);
+      return g;
+    }
+
+    function makeCap({ rOuter, height, wall=2.2, top=2.2, matOuter, matInner, seg=128 }){
+      const g = new THREE.Group();
+
+      const outerWall = new THREE.Mesh(
+        new THREE.CylinderGeometry(rOuter, rOuter, height, seg, 1, true),
+        matOuter
+      );
+      outerWall.position.y = height/2;
+
+      const rInner = Math.max(1, rOuter - wall);
+      const innerH = Math.max(1, height - top);
+      const innerWall = new THREE.Mesh(
+        new THREE.CylinderGeometry(rInner, rInner, innerH, seg, 1, true),
+        matInner
+      );
+      innerWall.position.y = innerH/2;
+
+      const topDisk = new THREE.Mesh(
+        new THREE.CylinderGeometry(rOuter, rOuter, top, seg),
+        matOuter
+      );
+      topDisk.position.y = height - top/2;
+
+      g.add(outerWall, innerWall, topDisk);
+      return g;
+    }
+
+    function makeTubeSegment({ rOuter, height, wall=2.2, matOuter, matInner, seg=128 }){
+      const g = new THREE.Group();
+
+      const outerWall = new THREE.Mesh(
+        new THREE.CylinderGeometry(rOuter, rOuter, height, seg, 1, true),
+        matOuter
+      );
+      outerWall.position.y = height/2;
+
+      const rInner = Math.max(1, rOuter - wall);
+      const innerWall = new THREE.Mesh(
+        new THREE.CylinderGeometry(rInner, rInner, height, seg, 1, true),
+        matInner
+      );
+      innerWall.position.y = height/2;
+
+      g.add(outerWall, innerWall);
+      return g;
     }
 
     function clearRoot(){
-      while(root.children.length) root.remove(root.children[0]);
+      root.clear();
       parts.base = parts.collar = parts.lid = parts.body = null;
+    }
+
+    function setBaseY(obj, y){
+      obj.userData.baseY = y;
+      obj.position.y = y;
     }
 
     function applyOpen(){
@@ -211,15 +395,28 @@
       const type = ui.type.value;
 
       if(type === "one"){
-        if(parts.lid) parts.lid.position.y += open * 14;
+        if(parts.lid){
+          parts.lid.position.y = parts.lid.userData.baseY + open * 22;
+        }
       }
+
       if(type === "two"){
-        if(parts.lid) parts.lid.position.y += open * 55;
-        if(parts.collar) parts.collar.position.y += open * 8;
+        if(parts.lid){
+          parts.lid.position.y = parts.lid.userData.baseY + open * 80;
+        }
       }
+
       if(type === "tel"){
-        if(parts.lid) parts.lid.position.y += open * 85;
-        if(parts.collar) parts.collar.position.y += open * 14;
+        // wow: víko jde hodně nahoru, spodní část lehce "vystoupí"
+        if(parts.lid){
+          parts.lid.position.y = parts.lid.userData.baseY + open * 130;
+        }
+        if(parts.collar){
+          parts.collar.position.y = parts.collar.userData.baseY + open * 10;
+        }
+        if(parts.base){
+          parts.base.position.y = parts.base.userData.baseY + open * 6;
+        }
       }
     }
 
@@ -238,7 +435,8 @@
     function updateHUD(){
       const cfg = currentConfig();
       const typeLabel = cfg.type === "one" ? "Jednodílný" : cfg.type === "two" ? "Spodek & víko" : "Teleskopický";
-      const materialLabel = cfg.material === "paper" ? "Matný papír" : cfg.material === "satin" ? "Satén" : "Metal";
+      const materialLabel = cfg.material === "paper" ? "Matný papír" : cfg.material === "satin" ? "Satén" : "Metalický";
+
       ui.hud.innerHTML = `
         <div style="margin-bottom:6px;">
           <span class="pill"><b>Typ</b> <span>${typeLabel}</span></span>
@@ -246,8 +444,10 @@
           <span class="pill"><b>Výška</b> <span>${cfg.heightMm} mm</span></span>
         </div>
         <div class="tiny">
-          <b>Povrch:</b> ${materialLabel} · <b>Barva:</b> ${cfg.colorHex.toUpperCase()} · <b>Otevření:</b> ${cfg.openPct}%
-          ${cfg.type === "tel" ? ` · <b>Teleskop poměr:</b> ${cfg.telRatioPct}%` : ``}
+          <b>Povrch:</b> ${materialLabel}
+          · <b>Barva:</b> ${cfg.colorHex.toUpperCase()}
+          · <b>Otevření:</b> ${cfg.openPct}%
+          ${cfg.type === "tel" ? ` · <b>Víko:</b> ${cfg.telRatioPct}%` : ``}
         </div>
       `;
     }
@@ -255,7 +455,7 @@
     function resize(){
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
-      if (!w || !h) return;
+      if(!w || !h) return;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -277,98 +477,142 @@
       const H = Number(ui.height.value);
       const r = D/2;
 
-      const mat = makeMaterial(ui.material.value, ui.color.value);
-      const radialSeg = 96;
+      const outer = makeMaterial(ui.material.value, ui.color.value, THREE.FrontSide);
+      const inner = makeMaterial(ui.material.value, darkerHex(ui.color.value, 0.90), THREE.BackSide);
+
+      // kov pro "Jednodílný"
+      const metalOuter = makeMaterial("metal", "#d7dbe3", THREE.FrontSide);
+      const metalInner = makeMaterial("metal", "#b9c0cc", THREE.BackSide);
+
+      const wall = Math.max(1.8, Math.min(3.2, D * 0.03));
+      const seg = 144;
 
       if(type === "one"){
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r, H, radialSeg, 1, true), mat);
-        body.position.y = H/2;
+        // Jednodílný tubus: tělo (otevřený tubus) + kovové víčko nahoře + kovový spodek
+        const capH = Math.max(14, Math.min(22, H * 0.14));
+        const bodyH = Math.max(60, H - capH * 0.35);
 
-        const capH = Math.max(10, Math.min(18, H*0.12));
-        const capGeo = new THREE.CylinderGeometry(r*1.01, r*1.01, capH, radialSeg);
-        const capMat = makeMaterial("metal", "#d7dbe3");
+        const body = makeTubeSegment({ rOuter: r, height: bodyH, wall, matOuter: outer, matInner: inner, seg });
+        setShadows(body);
+        setBaseY(body, capH * 0.15); // lehký overlap na spodek
 
-        const top = new THREE.Mesh(capGeo, capMat);
-        top.position.y = H - capH/2 + 0.5;
+        const bottom = makeCup({ rOuter: r * 1.01, height: capH, wall: wall * 0.85, bottom: 2.0, matOuter: metalOuter, matInner: metalInner, seg });
+        setShadows(bottom);
+        setBaseY(bottom, 0);
 
-        const bottom = new THREE.Mesh(capGeo, capMat);
-        bottom.position.y = capH/2 - 0.5;
+        const lid = makeCap({ rOuter: r * 1.015, height: capH, wall: wall * 0.85, top: 2.0, matOuter: metalOuter, matInner: metalInner, seg });
+        setShadows(lid);
 
-        parts.body = body; parts.lid = top; parts.base = bottom;
-        root.add(body, top, bottom);
+        // víčko sedí na horní hraně těla (s malým přesahem dolů)
+        const overlap = Math.min(10, capH * 0.55);
+        const lidBase = body.userData.baseY + bodyH - (capH - overlap);
+        setBaseY(lid, lidBase);
+
+        parts.body = body;
+        parts.base = bottom;
+        parts.lid = lid;
+
+        root.add(bottom, body, lid);
       }
 
       if(type === "two"){
-        const overlap = Math.max(18, Math.min(40, H*0.22));
-        const baseH = H - overlap + 2;
+        // Spodek & Víko: spodek = cup, víko = cap (větší průměr) s překryvem
+        const lidH = Math.max(32, Math.min(70, H * 0.30));
+        const baseH = Math.max(50, H - lidH * 0.55);
 
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(r, r, baseH, radialSeg), mat);
-        base.position.y = baseH/2;
+        const base = makeCup({ rOuter: r, height: baseH, wall, bottom: 2.2, matOuter: outer, matInner: inner, seg });
+        setShadows(base);
+        setBaseY(base, 0);
 
-        const lidH = overlap;
-        const lid = new THREE.Mesh(new THREE.CylinderGeometry(r*1.01, r*1.01, lidH, radialSeg), mat);
-        lid.position.y = baseH + lidH/2 - 1;
+        const lid = makeCap({ rOuter: r * 1.02, height: lidH, wall: wall * 0.95, top: 2.2, matOuter: outer, matInner: inner, seg });
+        setShadows(lid);
 
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(r*1.005, 1.3, 16, 120), mat);
-        ring.rotation.x = Math.PI/2;
-        ring.position.y = baseH + 2;
+        const overlap = Math.min(18, lidH * 0.42); // reálný "nasazovací" překryv
+        setBaseY(lid, baseH - overlap);
 
-        parts.base = base; parts.lid = lid; parts.collar = ring;
-        root.add(base, lid, ring);
+        parts.base = base;
+        parts.lid = lid;
+
+        root.add(base, lid);
       }
 
       if(type === "tel"){
-        const lidPct = Number(ui.telRatio.value)/100;
-        const lidH = Math.max(30, H * lidPct);
-        const remaining = H - lidH;
-        const collarH = Math.max(18, Math.min(50, remaining * 0.55));
-        const baseH = Math.max(28, remaining - collarH);
+        // Teleskopický: spodek + krček (segment) + vysoké víko
+        const lidPct = Number(ui.telRatio.value)/100; // 0.45–0.85
+        const lidH = Math.max(80, H * lidPct);
+        const remaining = Math.max(60, H - lidH);
 
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(r, r, baseH, radialSeg), mat);
-        base.position.y = baseH/2;
+        // "wow" proporce: nízký krček + nízký spodek
+        const baseH = Math.max(40, remaining * 0.58);
+        const collarH = Math.max(24, remaining - baseH);
 
-        const collar = new THREE.Mesh(new THREE.CylinderGeometry(r*1.005, r*1.005, collarH, radialSeg), mat);
-        collar.position.y = baseH + collarH/2 - 0.8;
+        const base = makeCup({ rOuter: r, height: baseH, wall, bottom: 2.2, matOuter: outer, matInner: inner, seg });
+        setShadows(base);
+        setBaseY(base, 0);
 
-        const lid = new THREE.Mesh(new THREE.CylinderGeometry(r*1.01, r*1.01, lidH, radialSeg), mat);
-        lid.position.y = baseH + collarH + lidH/2 - 1.6;
+        const collar = makeTubeSegment({ rOuter: r * 1.006, height: collarH, wall: wall * 0.95, matOuter: outer, matInner: inner, seg });
+        setShadows(collar);
 
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(r*1.005, 1.2, 16, 120), mat);
-        ring.rotation.x = Math.PI/2;
-        ring.position.y = baseH + collarH + 2;
+        const collarOverlap = 6;
+        setBaseY(collar, baseH - collarOverlap);
 
-        parts.base = base; parts.collar = collar; parts.lid = lid;
-        root.add(base, collar, lid, ring);
+        const lid = makeCap({ rOuter: r * 1.02, height: lidH, wall: wall * 0.95, top: 2.2, matOuter: outer, matInner: inner, seg });
+        setShadows(lid);
+
+        const lidOverlap = 14;
+        setBaseY(lid, (baseH - collarOverlap) + collarH - lidOverlap);
+
+        parts.base = base;
+        parts.collar = collar;
+        parts.lid = lid;
+
+        root.add(base, collar, lid);
       }
 
+      // Keep it centered and crisp
+      root.position.set(0, 0, 0);
+
+      // Apply opening (non-destructive, based on stored baseY)
       applyOpen();
       updateHUD();
     }
 
-    function rebuild(){
-      syncLabels();
-      buildModel();
+    function renderOnce(){
       resize();
       renderer.render(scene, camera);
     }
 
-    // UI events
+    function rebuildAll(){
+      syncLabels();
+      buildModel();
+      renderOnce();
+    }
+
+    function updateOpenOnly(){
+      syncLabels();
+      applyOpen();
+      updateHUD();
+      renderOnce();
+    }
+
+    // Events
     ["input","change"].forEach(evt=>{
-      ui.type.addEventListener(evt, rebuild);
-      ui.diameter.addEventListener(evt, rebuild);
-      ui.height.addEventListener(evt, rebuild);
-      ui.telRatio.addEventListener(evt, rebuild);
-      ui.open.addEventListener(evt, rebuild);
-      ui.material.addEventListener(evt, rebuild);
-      ui.color.addEventListener(evt, rebuild);
+      ui.type.addEventListener(evt, rebuildAll);
+      ui.diameter.addEventListener(evt, rebuildAll);
+      ui.height.addEventListener(evt, rebuildAll);
+      ui.telRatio.addEventListener(evt, rebuildAll);
+      ui.material.addEventListener(evt, rebuildAll);
+      ui.color.addEventListener(evt, rebuildAll);
+
+      // open should be smooth and not rebuild geometry
+      ui.open.addEventListener(evt, updateOpenOnly);
     });
 
     ui.reset.addEventListener("click", () => {
-      controls.target.set(0, 80, 0);
-      camera.position.set(0, 140, 340);
+      controls.target.set(0, 90, 0);
+      camera.position.set(0, 150, 420);
       controls.update();
-      resize();
-      renderer.render(scene, camera);
+      renderOnce();
     });
 
     ui.copy.addEventListener("click", async () => {
@@ -383,21 +627,17 @@
       }
     });
 
-    window.addEventListener("resize", () => {
-      resize();
-      renderer.render(scene, camera);
-    });
+    window.addEventListener("resize", renderOnce);
 
     // Init
     syncLabels();
     buildModel();
-    resize();
-    renderer.render(scene, camera);
+    renderOnce();
 
     // Force resize after layout settles (iframes/CMS)
-    setTimeout(() => { resize(); renderer.render(scene, camera); }, 120);
-    setTimeout(() => { resize(); renderer.render(scene, camera); }, 420);
-    setTimeout(() => { resize(); renderer.render(scene, camera); }, 900);
+    setTimeout(renderOnce, 120);
+    setTimeout(renderOnce, 420);
+    setTimeout(renderOnce, 900);
 
     // Render loop
     function animate(){
