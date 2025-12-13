@@ -433,3 +433,24 @@
   </script>
 </body>
 </html>
+
+// --- FORCE RESIZE & FIRST RENDER FIX ---
+function forceResize() {
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if (w > 0 && h > 0) {
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.render(scene, camera);
+  }
+}
+
+// počkej, až se layout skutečně usadí
+setTimeout(forceResize, 100);
+setTimeout(forceResize, 300);
+setTimeout(forceResize, 600);
+
+// reaguj i na změny okna / iframe
+window.addEventListener("resize", forceResize);
+
