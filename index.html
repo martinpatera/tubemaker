@@ -4,11 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TUBEMAKER™ – 3D Configurator MVP</title>
+
+  <!-- ✅ IMPORTANT: makes "three" and "three/addons/*" resolvable in the browser -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
   <style>
     :root { --bg:#0b0d12; --panel:#111523; --text:#e9edf7; --muted:#98a2b3; --accent:#0619f5; }
     html,body { height:100%; margin:0; background:var(--bg); color:var(--text);
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
-    /* Important: give WebGL a real height */
     .wrap { display:grid; grid-template-columns: 360px 1fr; height:100vh; }
     .panel { padding:18px; border-right:1px solid rgba(255,255,255,.08);
       background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)); overflow:auto; }
@@ -121,8 +131,8 @@
   </div>
 
   <script type="module">
-    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-    import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
     const $ = (id) => document.getElementById(id);
     const ui = {
@@ -147,6 +157,7 @@
     const pct = (n)=> `${Math.round(n)}%`;
 
     const canvas = $("c");
+
     const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0x0b0d12, 1);
@@ -181,7 +192,6 @@
 
     const root = new THREE.Group();
     scene.add(root);
-
     const parts = { base:null, collar:null, lid:null, body:null };
 
     function makeMaterial(kind, hex){
@@ -196,6 +206,69 @@
       parts.base = parts.collar = parts.lid = parts.body = null;
     }
 
+    function applyOpen(){
+      const open = Number(ui.open.value)/100;
+      const type = ui.type.value;
+
+      if(type === "one"){
+        if(parts.lid) parts.lid.position.y += open * 14;
+      }
+      if(type === "two"){
+        if(parts.lid) parts.lid.position.y += open * 55;
+        if(parts.collar) parts.collar.position.y += open * 8;
+      }
+      if(type === "tel"){
+        if(parts.lid) parts.lid.position.y += open * 85;
+        if(parts.collar) parts.collar.position.y += open * 14;
+      }
+    }
+
+    function currentConfig(){
+      return {
+        type: ui.type.value,
+        diameterMm: Number(ui.diameter.value),
+        heightMm: Number(ui.height.value),
+        telRatioPct: Number(ui.telRatio.value),
+        openPct: Number(ui.open.value),
+        material: ui.material.value,
+        colorHex: ui.color.value
+      };
+    }
+
+    function updateHUD(){
+      const cfg = currentConfig();
+      const typeLabel = cfg.type === "one" ? "Jednodílný" : cfg.type === "two" ? "Spodek & víko" : "Teleskopický";
+      const materialLabel = cfg.material === "paper" ? "Matný papír" : cfg.material === "satin" ? "Satén" : "Metal";
+      ui.hud.innerHTML = `
+        <div style="margin-bottom:6px;">
+          <span class="pill"><b>Typ</b> <span>${typeLabel}</span></span>
+          <span class="pill"><b>Ø</b> <span>${cfg.diameterMm} mm</span></span>
+          <span class="pill"><b>Výška</b> <span>${cfg.heightMm} mm</span></span>
+        </div>
+        <div class="tiny">
+          <b>Povrch:</b> ${materialLabel} · <b>Barva:</b> ${cfg.colorHex.toUpperCase()} · <b>Otevření:</b> ${cfg.openPct}%
+          ${cfg.type === "tel" ? ` · <b>Teleskop poměr:</b> ${cfg.telRatioPct}%` : ``}
+        </div>
+      `;
+    }
+
+    function resize(){
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (!w || !h) return;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+
+    function syncLabels(){
+      ui.diameterVal.textContent = mm(ui.diameter.value);
+      ui.heightVal.textContent = mm(ui.height.value);
+      ui.telRatioVal.textContent = pct(ui.telRatio.value);
+      ui.openVal.textContent = pct(ui.open.value);
+      ui.telRow.style.display = (ui.type.value === "tel") ? "grid" : "none";
+    }
+
     function buildModel(){
       clearRoot();
 
@@ -208,8 +281,7 @@
       const radialSeg = 96;
 
       if(type === "one"){
-        const bodyGeo = new THREE.CylinderGeometry(r, r, H, radialSeg, 1, true);
-        const body = new THREE.Mesh(bodyGeo, mat);
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r, H, radialSeg, 1, true), mat);
         body.position.y = H/2;
 
         const capH = Math.max(10, Math.min(18, H*0.12));
@@ -273,69 +345,6 @@
       updateHUD();
     }
 
-    function applyOpen(){
-      const open = Number(ui.open.value)/100;
-      const type = ui.type.value;
-
-      if(type === "one"){
-        if(parts.lid) parts.lid.position.y += open * 14;
-      }
-      if(type === "two"){
-        if(parts.lid) parts.lid.position.y += open * 55;
-        if(parts.collar) parts.collar.position.y += open * 8;
-      }
-      if(type === "tel"){
-        if(parts.lid) parts.lid.position.y += open * 85;
-        if(parts.collar) parts.collar.position.y += open * 14;
-      }
-    }
-
-    function currentConfig(){
-      const type = ui.type.value;
-      return {
-        type,
-        diameterMm: Number(ui.diameter.value),
-        heightMm: Number(ui.height.value),
-        telRatioPct: Number(ui.telRatio.value),
-        openPct: Number(ui.open.value),
-        material: ui.material.value,
-        colorHex: ui.color.value
-      };
-    }
-
-    function updateHUD(){
-      const cfg = currentConfig();
-      const typeLabel = cfg.type === "one" ? "Jednodílný" : cfg.type === "two" ? "Spodek & víko" : "Teleskopický";
-      const materialLabel = cfg.material === "paper" ? "Matný papír" : cfg.material === "satin" ? "Satén" : "Metal";
-      ui.hud.innerHTML = `
-        <div style="margin-bottom:6px;">
-          <span class="pill"><b>Typ</b> <span>${typeLabel}</span></span>
-          <span class="pill"><b>Ø</b> <span>${cfg.diameterMm} mm</span></span>
-          <span class="pill"><b>Výška</b> <span>${cfg.heightMm} mm</span></span>
-        </div>
-        <div class="tiny">
-          <b>Povrch:</b> ${materialLabel} · <b>Barva:</b> ${cfg.colorHex.toUpperCase()} · <b>Otevření:</b> ${cfg.openPct}%
-          ${cfg.type === "tel" ? ` · <b>Teleskop poměr:</b> ${cfg.telRatioPct}%` : ``}
-        </div>
-      `;
-    }
-
-    function resize(){
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-    }
-
-    function syncLabels(){
-      ui.diameterVal.textContent = mm(ui.diameter.value);
-      ui.heightVal.textContent = mm(ui.height.value);
-      ui.telRatioVal.textContent = pct(ui.telRatio.value);
-      ui.openVal.textContent = pct(ui.open.value);
-      ui.telRow.style.display = (ui.type.value === "tel") ? "grid" : "none";
-    }
-
     function rebuild(){
       syncLabels();
       buildModel();
@@ -383,13 +392,14 @@
     syncLabels();
     buildModel();
     resize();
+    renderer.render(scene, camera);
 
-    // Force resize after layout settles
+    // Force resize after layout settles (iframes/CMS)
     setTimeout(() => { resize(); renderer.render(scene, camera); }, 120);
     setTimeout(() => { resize(); renderer.render(scene, camera); }, 420);
     setTimeout(() => { resize(); renderer.render(scene, camera); }, 900);
 
-    // One render loop
+    // Render loop
     function animate(){
       requestAnimationFrame(animate);
       controls.update();
