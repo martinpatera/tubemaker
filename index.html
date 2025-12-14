@@ -1,280 +1,331 @@
-<!doctype html>
-<html lang="cs">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TUBEMAKER™ – 3D konfigurátor (MVP)</title>
-  <style>
-    :root{
-      --bg:#ffffff;
-      --panel:#ffffff;
-      --text:#111827;
-      --muted:#6b7280;
-      --accent:#0619f5;
-      --card: rgba(17,24,39,.03);
-      --border: rgba(17,24,39,.12);
-      --shadow: 0 10px 30px rgba(0,0,0,.08);
-    }
-    html,body{
-      height:100%;
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    }
-    .wrap{
-      display:grid;
-      grid-template-columns: 360px 1fr;
-      height:100vh;
-    }
-    .panel{
-      padding:18px;
-      background:var(--panel);
-      border-right:1px solid var(--border);
-      overflow:auto;
-    }
-    .brand{
-      display:flex;
-      gap:10px;
-      align-items:baseline;
-      margin-bottom:14px;
-    }
-    .brand h1{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.2px;
-      font-weight:650;
-    }
-    .brand .sub{
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:14px;
-      margin:12px 0;
-      box-shadow: var(--shadow);
-    }
-
-    .row{
-      display:grid;
-      grid-template-columns: 1fr auto;
-      gap:10px;
-      align-items:center;
-      margin:10px 0;
-    }
-    label{ font-size:12px; color:var(--muted); }
-    .value{
-      font-variant-numeric: tabular-nums;
-      text-align:right;
-      font-size:12px;
-      color:var(--text);
-    }
-
-    .row.range input[type="range"]{
-      grid-column: 1 / -1;
-      width:100%;
-    }
-
-    select,input[type="color"],button{ width:100%; }
-    input[type="range"]{ accent-color: var(--accent); }
-    select,button,input[type="color"]{
-      background:#fff;
-      border:1px solid var(--border);
-      color:var(--text);
-      border-radius:10px;
-      padding:10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.04);
-    }
-    button{ cursor:pointer; }
-    button.primary{
-      background:var(--accent);
-      border-color:transparent;
-      color:#fff;
-      font-weight:650;
-    }
-
-    .tiny{ font-size:11px; color:var(--muted); line-height:1.35; }
-
-    .canvas{
-      position:relative;
-      height:100%;
-      background:#fff;
-    }
-    #c{ width:100%; height:100%; display:block; }
-
-    .hudBottom{
-      position:absolute;
-      left:50%;
-      bottom:14px;
-      transform:translateX(-50%);
-      background:rgba(255,255,255,.86);
-      border:1px solid var(--border);
-      backdrop-filter: blur(10px);
-      border-radius:14px;
-      padding:10px 12px;
-      box-shadow: var(--shadow);
-      max-width:min(840px, calc(100% - 24px));
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:center;
-      align-items:center;
-    }
-    .pill{
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      padding:6px 10px;
-      border-radius:999px;
-      background:rgba(17,24,39,.03);
-      border:1px solid var(--border);
-      color:var(--text);
-      font-size:12px;
-    }
-    .pill b{ color:var(--text); }
-
-    @media (max-width: 920px){
-      .wrap{
-        grid-template-columns: 1fr;
-        grid-template-rows:auto 1fr;
-      }
-      .panel{
-        border-right:none;
-        border-bottom:1px solid var(--border);
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="wrap">
-    <div class="panel">
-      <div class="brand">
+<!-- TUBEMAKER™ 3D Configurator (Squarespace embed) -->
+<div id="tm-embed" class="tm-embed">
+  <div class="tm-wrap">
+    <div class="tm-panel">
+      <div class="tm-brand">
         <h1>tubemaker™</h1>
-        <div class="sub">3D konfigurátor (MVP)</div>
+        <div class="tm-sub">3D configurator (BETA)</div>
       </div>
 
-      <div class="card">
-        <div class="row">
-          <label for="type">Typ konstrukce</label>
-          <select id="type">
-            <option value="one">Jednodílný</option>
-            <option value="two" selected>Spodek &amp; víko</option>
-            <option value="tel">Teleskopický</option>
+      <div class="tm-card">
+        <div class="tm-row">
+          <label for="tm-type">Construction type</label>
+          <select id="tm-type">
+            <option value="one">One-piece</option>
+            <option value="two" selected>Base &amp; lid</option>
+            <option value="tel">Telescopic</option>
           </select>
         </div>
 
-        <div class="row range">
-          <label for="diameter">Průměr (mm)</label>
-          <div class="value" id="diameterVal"></div>
-          <input id="diameter" type="range" min="35" max="120" step="1" value="70" />
+        <div class="tm-row tm-range">
+          <label for="tm-diameter">Diameter (mm)</label>
+          <div class="tm-value" id="tm-diameterVal"></div>
+          <input id="tm-diameter" type="range" min="35" max="120" step="1" value="70" />
         </div>
 
-        <div class="row range">
-          <label for="height">Celková výška (mm)</label>
-          <div class="value" id="heightVal"></div>
-          <input id="height" type="range" min="50" max="500" step="1" value="153" />
+        <div class="tm-row tm-range">
+          <label for="tm-height">Total height (mm)</label>
+          <div class="tm-value" id="tm-heightVal"></div>
+          <input id="tm-height" type="range" min="50" max="500" step="1" value="153" />
         </div>
 
-        <div class="row range" id="telRow">
-          <label for="telLidPct">Teleskop: výška víka</label>
-          <div class="value" id="telLidPctVal"></div>
-          <input id="telLidPct" type="range" min="20" max="85" step="1" value="45" />
+        <div class="tm-row tm-range" id="tm-telRow">
+          <label for="tm-telLidPct">Telescopic: lid height</label>
+          <div class="tm-value" id="tm-telLidPctVal"></div>
+          <input id="tm-telLidPct" type="range" min="20" max="85" step="1" value="45" />
         </div>
 
-        <div class="row range">
-          <label for="open">Otevření</label>
-          <div class="value" id="openVal"></div>
-          <input id="open" type="range" min="0" max="100" step="1" value="0" />
+        <div class="tm-row tm-range">
+          <label for="tm-open">Opening</label>
+          <div class="tm-value" id="tm-openVal"></div>
+          <input id="tm-open" type="range" min="0" max="100" step="1" value="0" />
         </div>
       </div>
 
-      <div class="card">
-        <div class="row">
-          <label for="material">Povrch</label>
-          <select id="material">
-            <option value="paper" selected>Matný papír</option>
-            <option value="satin">Satén</option>
-            <option value="metal">Metalický</option>
+      <div class="tm-card">
+        <div class="tm-row">
+          <label for="tm-material">Finish</label>
+          <select id="tm-material">
+            <option value="paper" selected>Matte paper</option>
+            <option value="satin">Satin</option>
+            <option value="metal">Metallic</option>
           </select>
         </div>
 
-        <div class="row">
-          <label for="color">Barva</label>
-          <input id="color" type="color" value="#FEC700" />
+        <div class="tm-row">
+          <label for="tm-color">Color</label>
+          <input id="tm-color" type="color" value="#FEC700" />
         </div>
 
-        <div class="row" style="grid-template-columns:1fr 1fr;">
-          <button id="reset">Reset view</button>
-          <button id="copy" class="primary">Copy config JSON</button>
+        <div class="tm-row tm-twoBtns">
+          <button id="tm-reset" type="button">Reset view</button>
+          <button id="tm-copy" type="button" class="tm-primary">Copy configuration JSON</button>
         </div>
 
-        <div class="tiny">Ovládání: myší otáčej · kolečkem zoom · pravým tlačítkem posuň</div>
-        <div class="tiny">Prodejní vizualizace — ne výrobní CAD.</div>
+        <div class="tm-tiny">Controls: rotate with mouse · wheel/trackpad to zoom · right-click to pan</div>
+        <div class="tm-tiny">Sales visualization — not production CAD.</div>
       </div>
 
-      <div class="card">
-        <div class="tiny">
-          <b>Detail realismu (nastavit v kódu):</b><br>
-          Stěna papíru: 1.5 mm · Curled edge: zapnutý pro spodek & víko + teleskop · Plechové víčko: tenký “cup”.
+      <!-- ✅ SUMMARY moved into the left panel -->
+      <div class="tm-card">
+        <div class="tm-summaryTitle">Summary</div>
+        <div class="tm-hudBottom" id="tm-hudBottom"></div>
+      </div>
+
+      <div class="tm-card">
+        <div class="tm-tiny">
+          <b>Realism details (set in code):</b><br>
+          Paper wall: 1.5 mm · Curled edge: outside rim on base &amp; lid (2‑piece + telescopic) · One‑piece metal end‑caps: ultra‑thin (~1 mm) hint.
         </div>
       </div>
     </div>
 
-    <div class="canvas">
-      <canvas id="c"></canvas>
-      <div class="hudBottom" id="hudBottom"></div>
+    <div class="tm-canvas">
+      <canvas id="tm-c"></canvas>
+      <!-- ✅ HUD removed from canvas -->
     </div>
   </div>
+</div>
 
-  <script type="module">
-    // ---- Imports (GitHub Pages friendly) ----
-    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-    import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js?module";
+<style>
+  /* ===== Scoped styles (won't touch the rest of Squarespace) ===== */
+  .tm-embed{
+    --tm-height: 900px;
+
+    --bg:#ffffff;
+    --panel:#ffffff;
+    --text:#111827;
+    --muted:#6b7280;
+    --accent:#0619f5;
+    --card: rgba(17,24,39,.03);
+    --border: rgba(17,24,39,.12);
+    --shadow: 0 10px 30px rgba(0,0,0,.08);
+
+    width:100%;
+    color:var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  }
+  .tm-embed, .tm-embed *{ box-sizing:border-box; }
+
+  .tm-embed .tm-wrap{
+    display:grid;
+    grid-template-columns: 360px 1fr;
+    height: min(var(--tm-height), 85vh);
+    min-height: 720px;
+
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:16px;
+    overflow:hidden;
+  }
+
+  .tm-embed .tm-panel{
+    padding:18px;
+    background:var(--panel);
+    border-right:1px solid var(--border);
+    overflow:auto;
+  }
+
+  .tm-embed .tm-brand{
+    display:flex;
+    gap:10px;
+    align-items:baseline;
+    margin-bottom:14px;
+  }
+  .tm-embed .tm-brand h1{
+    margin:0;
+    font-size:18px;
+    letter-spacing:.2px;
+    font-weight:650;
+  }
+  .tm-embed .tm-sub{ font-size:12px; color:var(--muted); }
+
+  .tm-embed .tm-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px;
+    margin:12px 0;
+    box-shadow: var(--shadow);
+  }
+
+  .tm-embed .tm-row{
+    display:grid;
+    grid-template-columns: 1fr auto;
+    gap:10px;
+    align-items:center;
+    margin:10px 0;
+  }
+  .tm-embed label{ font-size:12px; color:var(--muted); }
+  .tm-embed .tm-value{
+    font-variant-numeric: tabular-nums;
+    text-align:right;
+    font-size:12px;
+    color:var(--text);
+  }
+
+  .tm-embed .tm-row.tm-range input[type="range"]{
+    grid-column: 1 / -1;
+    width:100%;
+  }
+
+  .tm-embed select,
+  .tm-embed input[type="color"],
+  .tm-embed button{ width:100%; }
+
+  .tm-embed input[type="range"]{ accent-color: var(--accent); }
+
+  .tm-embed select,
+  .tm-embed button,
+  .tm-embed input[type="color"]{
+    background:#fff;
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:10px;
+    padding:10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+  }
+  .tm-embed button{ cursor:pointer; }
+  .tm-embed .tm-primary{
+    background:var(--accent);
+    border-color:transparent;
+    color:#fff;
+    font-weight:650;
+  }
+
+  .tm-embed .tm-twoBtns{ grid-template-columns:1fr 1fr; }
+  .tm-embed .tm-tiny{ font-size:11px; color:var(--muted); line-height:1.35; }
+
+  .tm-embed .tm-canvas{
+    position:relative;
+    height:100%;
+    background:#fff;
+    overscroll-behavior: contain;
+  }
+  .tm-embed #tm-c{
+    width:100%;
+    height:100%;
+    display:block;
+    touch-action: none;
+  }
+
+  /* ✅ Summary title */
+  .tm-embed .tm-summaryTitle{
+    font-size:12px;
+    color:var(--muted);
+    letter-spacing:.2px;
+    margin-bottom:10px;
+  }
+
+  /* ✅ HUD now lives INSIDE the left panel (not absolute overlay) */
+  .tm-embed .tm-hudBottom{
+    position: static;
+    left:auto;
+    bottom:auto;
+    transform:none;
+
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    padding: 0;
+    max-width: 100%;
+
+    font-size:12px;
+    color:var(--muted);
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-start;
+    align-items:center;
+
+    pointer-events:auto;
+  }
+
+  .tm-embed .tm-pill{
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    padding:6px 10px;
+    border-radius:999px;
+    background:rgba(17,24,39,.03);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-size:12px;
+  }
+  .tm-embed .tm-pill b{ color:var(--text); }
+
+  @media (max-width: 920px){
+    .tm-embed .tm-wrap{
+      grid-template-columns: 1fr;
+      grid-template-rows:auto 1fr;
+      height: min(1100px, 120vh);
+      min-height: 920px;
+    }
+    .tm-embed .tm-panel{
+      border-right:none;
+      border-bottom:1px solid var(--border);
+    }
+  }
+</style>
+
+<script type="module">
+  import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+  import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js?module";
+
+  const host = document.getElementById("tm-embed");
+  if(!host || host.dataset.tmMounted === "1") {
+    /* prevent double-mount in Squarespace */
+  } else {
+    host.dataset.tmMounted = "1";
+
+    const $ = (sel) => host.querySelector(sel);
 
     // ---- “Realism” constants (mm-ish units) ----
-    const WALL_MM = 1.5;               // papír / lepenka: tloušťka stěny (viditelný dutý profil)
-    const PAPER_CURL_R = 2.2;          // radius curled edge (papír)
-    const LID_CLEARANCE_MM = 0.8;      // vůle (aby víko reálně "šlo nasadit")
-    const METAL_SHEET_MM = 0.6;        // tloušťka plechu (tenké víčko)
-    const METAL_CAP_H_MM = 10;         // “hloubka” plechového víčka (výška boční stěny víčka)
-    const METAL_CURL_R = 0.95;         // jemný roll na hraně plechu (aby to nevypadalo jako špalek)
-    const RADIAL_SEG = 140;            // hladký kruh
+    const WALL_MM = 1.5;
+    const LID_TOP_INSET_MM = 2;  // o kolik menší průměr (radius) – 2mm “ekvidistanta”
+const LID_TOP_DROP_MM  = 3;  // o kolik níž zapustit (dolů)
+
+
+    // Curled paper rim – outside
+    const PAPER_CURL_R = 0.5;
+
+    // One-piece metal “end-caps” – ultra-thin hint (~1mm)
+    const METAL_LID_THICK_MM = 2.0;
+    const METAL_LID_OVERHANG_MM = 0.8;
+    const METAL_LID_ROLL_R = 0.35;
+
+    const LID_CLEARANCE_MM = 0.8;
+    const RADIAL_SEG = 140;
     const SHADOW_OPACITY = 0.20;
 
     // ---- DOM ----
-    const $ = (id) => document.getElementById(id);
     const ui = {
-      type: $("type"),
-      diameter: $("diameter"),
-      height: $("height"),
-      telRow: $("telRow"),
-      telLidPct: $("telLidPct"),
-      open: $("open"),
-      material: $("material"),
-      color: $("color"),
-      reset: $("reset"),
-      copy: $("copy"),
+      type: $("#tm-type"),
+      diameter: $("#tm-diameter"),
+      height: $("#tm-height"),
+      telRow: $("#tm-telRow"),
+      telLidPct: $("#tm-telLidPct"),
+      open: $("#tm-open"),
+      material: $("#tm-material"),
+      color: $("#tm-color"),
+      reset: $("#tm-reset"),
+      copy: $("#tm-copy"),
 
-      diameterVal: $("diameterVal"),
-      heightVal: $("heightVal"),
-      telLidPctVal: $("telLidPctVal"),
-      openVal: $("openVal"),
+      diameterVal: $("#tm-diameterVal"),
+      heightVal: $("#tm-heightVal"),
+      telLidPctVal: $("#tm-telLidPctVal"),
+      openVal: $("#tm-openVal"),
 
-      hudBottom: $("hudBottom"),
+      hudBottom: $("#tm-hudBottom"),
+      canvasWrap: $(".tm-canvas"),
     };
 
     const mm = (n)=> `${Math.round(n)} mm`;
     const pct = (n)=> `${Math.round(n)}%`;
 
     // ---- Three setup ----
-    const canvas = $("c");
+    const canvas = $("#tm-c");
     const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(0xffffff, 1);
@@ -289,6 +340,11 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+
+    // Stop Squarespace page scroll while zooming over the 3D area
+    ui.canvasWrap.addEventListener("wheel", (e)=> e.preventDefault(), { passive:false });
 
     // Lights (white studio)
     scene.add(new THREE.HemisphereLight(0xffffff, 0xf3f4f6, 0.9));
@@ -315,14 +371,13 @@
       new THREE.ShadowMaterial({ opacity: SHADOW_OPACITY })
     );
     shadowPlane.rotation.x = -Math.PI/2;
-    shadowPlane.position.y = -0.15; // tiny offset to avoid z-fighting
+    shadowPlane.position.y = -0.15;
     shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
 
     const root = new THREE.Group();
     scene.add(root);
 
-    // We only need to animate lifting parts; store references:
     const parts = {
       base: null,
       lid: null,
@@ -330,10 +385,8 @@
       metalTop: null,
       metalBottom: null,
       type: "two",
-      dims: null,
     };
 
-    // ---- Helpers ----
     function disposeObject(obj){
       obj.traverse(o=>{
         if(o.geometry) o.geometry.dispose();
@@ -355,13 +408,11 @@
 
     function makeWrapMaterials(kind, hex){
       const c = new THREE.Color(hex);
-      let metalness = 0.0, roughness = 0.78;
+      let metalness = 0.0, roughness = 3.0;
       if(kind === "satin"){ metalness = 0.05; roughness = 0.35; }
       if(kind === "metal"){ metalness = 0.72; roughness = 0.22; }
 
-      const outer = new THREE.MeshStandardMaterial({
-        color: c, metalness, roughness, side: THREE.FrontSide
-      });
+      const outer = new THREE.MeshStandardMaterial({ color: c, metalness, roughness, side: THREE.FrontSide });
 
       const inner = new THREE.MeshStandardMaterial({
         color: c.clone().multiplyScalar(0.92),
@@ -382,22 +433,13 @@
 
     function makeMetalMaterials(hex = "#d7dbe3"){
       const c = new THREE.Color(hex);
-      const outer = new THREE.MeshStandardMaterial({
-        color: c, metalness: 0.88, roughness: 0.24, side: THREE.FrontSide
-      });
-      const inner = new THREE.MeshStandardMaterial({
-        color: c.clone().multiplyScalar(0.86),
-        metalness: 0.88,
-        roughness: 0.32,
-        side: THREE.BackSide
-      });
-      const edge = new THREE.MeshStandardMaterial({
-        color: c, metalness: 0.9, roughness: 0.24, side: THREE.DoubleSide
-      });
+      const outer = new THREE.MeshStandardMaterial({ color: c, metalness: 0.88, roughness: 0.24, side: THREE.FrontSide });
+      const inner = new THREE.MeshStandardMaterial({ color: c.clone().multiplyScalar(0.86), metalness: 0.88, roughness: 0.32, side: THREE.BackSide });
+      const edge  = new THREE.MeshStandardMaterial({ color: c, metalness: 0.9,  roughness: 0.24, side: THREE.DoubleSide });
       return { outer, inner, edge };
     }
 
-    // Hollow tube with visible wall thickness + optional curled edge on open rims
+    // Hollow tube with visible wall thickness + optional curled edge on outside rim
     function makeHollowTube({
       rOut, height, wall,
       mats,
@@ -425,10 +467,9 @@
         mats.inner
       );
       innerWall.position.y = height/2;
-      innerWall.castShadow = false;
       g.add(innerWall);
 
-      // Rims (flat ring showing thickness)
+      // Rims
       if(openTop && !closedTop){
         const ringTop = new THREE.Mesh(
           new THREE.RingGeometry(rIn, rOut, RADIAL_SEG),
@@ -460,113 +501,91 @@
         capB.castShadow = true;
         g.add(capB);
       }
-      if(closedTop){
-        const capT = new THREE.Mesh(
-          new THREE.CylinderGeometry(rOut, rOut, wall, RADIAL_SEG),
-          mats.edge
-        );
-        capT.position.y = height - wall/2;
-        capT.castShadow = true;
-        g.add(capT);
-      }
+ if(closedTop){
+  // make the top disk ever-so-slightly smaller + offset to avoid z-fighting spikes
+  const EPS_R = 0.4;   // 0.2–0.4 mm usually enough
+  const EPS_Y = 0.3;   // tiny vertical offset
 
-      // Curled edges (visual roll on open rims)
-      if(curlTop && openTop && !closedTop){
-        const tor = new THREE.Mesh(
-          new THREE.TorusGeometry(Math.max(0.1, rOut - curlR), curlR, 18, RADIAL_SEG),
-          mats.outer
-        );
-        tor.rotation.x = Math.PI/2;
-        tor.position.y = height - curlR;
-        tor.castShadow = true;
-        g.add(tor);
-      }
-      if(curlBottom && openBottom && !closedBottom){
-        const tor = new THREE.Mesh(
-          new THREE.TorusGeometry(Math.max(0.1, rOut - curlR), curlR, 18, RADIAL_SEG),
-          mats.outer
-        );
-        tor.rotation.x = Math.PI/2;
-        tor.position.y = curlR;
-        tor.castShadow = true;
-        g.add(tor);
-      }
+  const topMat = mats.edge.clone();
+  topMat.polygonOffset = true;
+  topMat.polygonOffsetFactor = -1;
+  topMat.polygonOffsetUnits  = -1;
+
+  const capT = new THREE.Mesh(
+    new THREE.CylinderGeometry(Math.max(0.1, rOut - EPS_R), Math.max(0.1, rOut - EPS_R), wall, RADIAL_SEG),
+    topMat
+  );
+
+  capT.position.y = (height - wall/2) - EPS_Y;
+  capT.castShadow = true;
+  g.add(capT);
+}
+
+
+
+      // Curled edges on OUTSIDE rim
+      const minor = curlR * 0.65;
+      const major = rOut + minor * 0.25;
+
+    if(curlBottom && openBottom && !closedBottom){
+  // Push curl further OUTSIDE so it reads as a real rolled edge
+  const minor = curlR * 0.45;                // a bit slimmer = cleaner
+  const major = rOut + minor * 0.55;         // more outside = more visible
+
+  // Use a cloned material with polygonOffset to avoid z-fighting spikes
+  const m = mats.outer.clone();
+  m.polygonOffset = true;
+  m.polygonOffsetFactor = -1;
+  m.polygonOffsetUnits  = -1;
+
+  const tor = new THREE.Mesh(
+    new THREE.TorusGeometry(major, minor, 16, RADIAL_SEG),
+    m
+  );
+
+  tor.rotation.x = Math.PI/2;
+
+  // IMPORTANT: sit ON the bottom rim (slightly below), not above it
+  tor.position.y = -minor * 0.25;
+
+  tor.castShadow = true;
+  g.add(tor);
+}
+
 
       return g;
     }
 
-    // Sheet-metal cap: a thin "cup" (really looks like plech, not thick plastic)
-    function makeMetalCap({
+    // One-piece metal end-cap: ultra-thin ~1mm “hint”
+    function makeMetalEndCapHint({
       rTubeOut,
-      capH = METAL_CAP_H_MM,
-      sheet = METAL_SHEET_MM,
-      clearance = LID_CLEARANCE_MM,
-      closedAt = "top", // "top" for lid, "bottom" for bottom-end
-      curlR = METAL_CURL_R,
-      mats = makeMetalMaterials()
+      thickness = METAL_LID_THICK_MM,
+      overhang = METAL_LID_OVERHANG_MM,
+      rollR = METAL_LID_ROLL_R,
+      mats
     }){
       const g = new THREE.Group();
-      g.userData.height = capH;
+      g.userData.height = thickness;
 
-      const rIn = rTubeOut + clearance;      // fits over tube
-      const rOut = rIn + sheet;              // sheet thickness outward
+      const rDisk = rTubeOut + overhang;
 
-      // Outer wall
-      const outerWall = new THREE.Mesh(
-        new THREE.CylinderGeometry(rOut, rOut, capH, RADIAL_SEG, 1, true),
-        mats.outer
-      );
-      outerWall.position.y = capH/2;
-      outerWall.castShadow = true;
-      g.add(outerWall);
-
-      // Inner wall (slightly shorter to avoid z-fight with the disk)
-      const innerH = Math.max(0.1, capH - sheet);
-      const innerWall = new THREE.Mesh(
-        new THREE.CylinderGeometry(rIn, rIn, innerH, RADIAL_SEG, 1, true),
-        mats.inner
-      );
-      if(closedAt === "top"){
-        innerWall.position.y = innerH/2; // from 0..(capH-sheet)
-      } else {
-        innerWall.position.y = sheet + innerH/2; // from sheet..capH
-      }
-      g.add(innerWall);
-
-      // Closed disk
       const disk = new THREE.Mesh(
-        new THREE.CylinderGeometry(rOut, rOut, sheet, RADIAL_SEG),
+        new THREE.CylinderGeometry(rDisk, rDisk, thickness, RADIAL_SEG),
         mats.edge
       );
+      disk.position.y = thickness/2;
       disk.castShadow = true;
+      g.add(disk);
 
-      // Open rim ring
-      const rimRing = new THREE.Mesh(
-        new THREE.RingGeometry(rIn, rOut, RADIAL_SEG),
-        mats.edge
-      );
-      rimRing.rotation.x = -Math.PI/2;
-      rimRing.castShadow = true;
-
-      // Tiny rolled edge on the open rim (so it doesn't look like a razor edge)
       const roll = new THREE.Mesh(
-        new THREE.TorusGeometry(Math.max(0.1, rOut - curlR), curlR, 16, RADIAL_SEG),
+        new THREE.TorusGeometry(rDisk + rollR*0.15, rollR, 12, RADIAL_SEG),
         mats.outer
       );
       roll.rotation.x = Math.PI/2;
+      roll.position.y = thickness - rollR*0.65;
       roll.castShadow = true;
+      g.add(roll);
 
-      if(closedAt === "top"){
-        disk.position.y = capH - sheet/2;
-        rimRing.position.y = 0;
-        roll.position.y = curlR;
-      } else {
-        disk.position.y = sheet/2;
-        rimRing.position.y = capH;
-        roll.position.y = capH - curlR;
-      }
-
-      g.add(disk, rimRing, roll);
       return g;
     }
 
@@ -598,16 +617,17 @@
 
     function updateHUD(){
       const cfg = currentConfig();
-      const typeLabel = cfg.type === "one" ? "Jednodílný" : (cfg.type === "two" ? "Spodek & víko" : "Teleskopický");
-      const matLabel = cfg.material === "paper" ? "Matný" : (cfg.material === "satin" ? "Satén" : "Metal");
-      const extra = cfg.type === "tel" ? ` · <b>Víko:</b> ${cfg.telLidPct}%` : "";
+      const typeLabel = cfg.type === "one" ? "One-piece" : (cfg.type === "two" ? "Base & lid" : "Telescopic");
+      const matLabel  = cfg.material === "paper" ? "Matte paper" : (cfg.material === "satin" ? "Satin" : "Metallic");
+      const extra     = cfg.type === "tel" ? ` · <b>Lid:</b> ${cfg.telLidPct}%` : "";
+
       ui.hudBottom.innerHTML = `
-        <span class="pill"><b>Typ</b> ${typeLabel}</span>
-        <span class="pill"><b>Ø</b> ${cfg.diameterMm} mm</span>
-        <span class="pill"><b>Výška</b> ${cfg.heightMm} mm</span>
-        <span class="pill"><b>Povrch</b> ${matLabel}</span>
-        <span class="pill"><b>Barva</b> ${cfg.colorHex.toUpperCase()}</span>
-        <span class="pill"><b>Otevření</b> ${cfg.openPct}%${extra}</span>
+        <span class="tm-pill"><b>Construction</b> ${typeLabel}</span>
+        <span class="tm-pill"><b>Ø</b> ${cfg.diameterMm} mm</span>
+        <span class="tm-pill"><b>Height</b> ${cfg.heightMm} mm</span>
+        <span class="tm-pill"><b>Finish</b> ${matLabel}</span>
+        <span class="tm-pill"><b>Color</b> ${cfg.colorHex.toUpperCase()}</span>
+        <span class="tm-pill"><b>Opening</b> ${cfg.openPct}%${extra}</span>
       `;
     }
 
@@ -628,16 +648,17 @@
       const H = Number(ui.height.value);
       const r = D/2;
 
+      controls.minDistance = Math.max(40, r * 1.2);
+      controls.maxDistance = Math.max(2200, r * 40 + H * 8);
+
       parts.type = type;
 
       const wrapMats = makeWrapMaterials(ui.material.value, ui.color.value);
       const metalMats = makeMetalMaterials("#D7DBE3");
 
-      // A small “stage” offset so it sits nicely above shadow plane
       const y0 = 0;
 
       if(type === "one"){
-        // Paper tube body (hollow)
         const body = makeHollowTube({
           rOut: r,
           height: H,
@@ -654,51 +675,38 @@
         root.add(body);
         parts.base = body;
 
-        // Bottom metal end-cap (closed at bottom, open at top)
-        const bottomCap = makeMetalCap({
+        const bottomCap = makeMetalEndCapHint({
           rTubeOut: r,
-          capH: Math.max(8, Math.min(14, D*0.14)),
-          sheet: METAL_SHEET_MM,
-          clearance: 0.6,
-          closedAt: "bottom",
-          curlR: METAL_CURL_R,
+          thickness: METAL_LID_THICK_MM,
+          overhang: METAL_LID_OVERHANG_MM,
+          rollR: METAL_LID_ROLL_R,
           mats: metalMats
         });
-        // put it on the ground; it wraps upward a bit
         bottomCap.position.y = y0;
         root.add(bottomCap);
         parts.metalBottom = bottomCap;
 
-        // Top metal lid (closed at top, open at bottom) – lifts when opening
-        const topCap = makeMetalCap({
+        const topCap = makeMetalEndCapHint({
           rTubeOut: r,
-          capH: Math.max(9, Math.min(16, D*0.16)),
-          sheet: METAL_SHEET_MM,
-          clearance: 0.6,
-          closedAt: "top",
-          curlR: METAL_CURL_R,
+          thickness: METAL_LID_THICK_MM,
+          overhang: METAL_LID_OVERHANG_MM,
+          rollR: METAL_LID_ROLL_R,
           mats: metalMats
         });
 
-        // overlap so it “sits on” the tube (realistic)
-        const overlap = Math.max(6, Math.min(14, D*0.12));
-        const closedY = y0 + H - overlap;
+        const closedY = y0 + H - METAL_LID_THICK_MM;
         setClosedY(topCap, closedY);
-
         root.add(topCap);
         parts.metalTop = topCap;
 
-        // Aim controls at mid-height
         controls.target.set(0, H*0.55, 0);
       }
 
       if(type === "two"){
-        // Choose proportions so closed total = H, with overlap
         const lidH = Math.max(35, Math.min(H*0.42, 140));
         const overlap = Math.max(14, Math.min(H*0.18, 40));
         const baseH = Math.max(35, H - lidH + overlap);
 
-        // Base: open top with curled edge, closed bottom
         const base = makeHollowTube({
           rOut: r,
           height: baseH,
@@ -715,7 +723,6 @@
         root.add(base);
         parts.base = base;
 
-        // Lid: slightly bigger radius so it really fits over the base
         const rLid = r + (WALL_MM + LID_CLEARANCE_MM + 0.2);
         const lid = makeHollowTube({
           rOut: rLid,
@@ -734,23 +741,20 @@
         root.add(lid);
         parts.lid = lid;
 
-        // Aim controls
         controls.target.set(0, H*0.55, 0);
       }
 
       if(type === "tel"){
-        // Lid height is user-controlled (%)
         const lidPct = Number(ui.telLidPct.value)/100;
         const lidH = Math.max(40, Math.min(H*lidPct, 320));
         const overlap = Math.max(16, Math.min(lidH*0.18, 55));
-        const lowerVisible = Math.max(35, H - lidH + overlap); // base + visible neck when opened
+        const lowerVisible = Math.max(35, H - lidH + overlap);
 
         const baseH = Math.max(35, lowerVisible*0.72);
         const neckAbove = Math.max(12, lowerVisible - baseH);
         const neckInsert = Math.max(18, Math.min(baseH*0.45, 65));
         const neckH = neckAbove + neckInsert;
 
-        // Base (open top with curl, closed bottom)
         const base = makeHollowTube({
           rOut: r,
           height: baseH,
@@ -766,7 +770,6 @@
         root.add(base);
         parts.base = base;
 
-        // Inner neck (krček) – slightly smaller, sits inside and protrudes above the base
         const neckR = Math.max(2, (r - WALL_MM - 1.1));
         const collar = makeHollowTube({
           rOut: neckR,
@@ -780,12 +783,10 @@
           curlTop: false,
           curlBottom: false
         });
-        // Position so it goes into base and also rises above it
         collar.position.y = y0 + (baseH - neckInsert);
         root.add(collar);
         parts.collar = collar;
 
-        // Outer lid (bigger so it slides over base)
         const rLid = r + (WALL_MM + LID_CLEARANCE_MM + 0.4);
         const lid = makeHollowTube({
           rOut: rLid,
@@ -816,9 +817,7 @@
       const open = Number(ui.open.value)/100;
       const cfg = currentConfig();
 
-      // Reset moved parts to closed position, then lift
       if(parts.type === "one" && parts.metalTop){
-        const D = cfg.diameterMm;
         const H = cfg.heightMm;
         const maxLift = Math.max(60, Math.min(H*0.7, 260));
         parts.metalTop.position.y = parts.metalTop.userData.closedY + open * maxLift;
@@ -843,7 +842,6 @@
       renderer.render(scene, camera);
     }
 
-    // ---- UI events ----
     ["input","change"].forEach(evt=>{
       ui.type.addEventListener(evt, rebuild);
       ui.diameter.addEventListener(evt, rebuild);
@@ -852,7 +850,6 @@
       ui.material.addEventListener(evt, rebuild);
       ui.color.addEventListener(evt, rebuild);
 
-      // open should NOT rebuild geometry every time; just move parts
       ui.open.addEventListener(evt, () => {
         syncLabels();
         applyOpen();
@@ -861,7 +858,6 @@
     });
 
     ui.reset.addEventListener("click", () => {
-      // Nice, consistent framing
       const cfg = currentConfig();
       const r = cfg.diameterMm/2;
       const H = cfg.heightMm;
@@ -878,33 +874,31 @@
       try{
         await navigator.clipboard.writeText(json);
         ui.copy.textContent = "Copied ✓";
-        setTimeout(()=> ui.copy.textContent = "Copy config JSON", 900);
+        setTimeout(()=> ui.copy.textContent = "Copy configuration JSON", 900);
       }catch(e){
         window.prompt("Copy JSON:", json);
       }
     });
 
-    window.addEventListener("resize", () => {
-      resize();
-    });
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(host);
+
+    window.addEventListener("resize", resize);
 
     // ---- Init ----
     syncLabels();
     buildModel();
     resize();
 
-    // Force a few renders after layout settles (iframes / Squarespace love this)
     setTimeout(()=>{ resize(); }, 120);
     setTimeout(()=>{ resize(); }, 420);
     setTimeout(()=>{ resize(); }, 900);
 
-    // Single render loop
     function animate(){
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
     }
     animate();
-  </script>
-</body>
-</html>
+  }
+</script>
