@@ -296,7 +296,7 @@
     const METAL_LID_ROLL_R = 0.35;
 
     const LID_CLEARANCE_MM = 0.8;
-    const RADIAL_SEG = 140;
+    const RADIAL_SEG = 200;
     const SHADOW_OPACITY = 0.20;
 
     // ---- DOM ----
@@ -533,41 +533,47 @@
         g.add(capT);
 
         if(curlTop){
-          const minor = Math.max(0.35, curlR * 0.7);
-          const major = Math.max(capR + minor * 0.65, minor + 0.5);
           const rimMat = mats.edge.clone();
+          rimMat.side = THREE.FrontSide;
           rimMat.polygonOffset = true;
           rimMat.polygonOffsetFactor = -1;
           rimMat.polygonOffsetUnits  = -1;
 
-          const tor = new THREE.Mesh(
-            new THREE.TorusGeometry(major, minor, 20, RADIAL_SEG),
-            rimMat
-          );
-          tor.rotation.x = Math.PI/2;
-          tor.position.y = Math.max(0, height - LID_TOP_DROP_MM - minor * 0.35);
-          tor.castShadow = true;
-          g.add(tor);
+          const rimEpsR = 0.1; // keeps rim off the outer wall for z-fighting avoidance
+          const rimH = Math.max(1.4, curlR * 2.2);
+          const rimStartY = Math.max(0, height - rimH - LID_TOP_DROP_MM * 0.25);
+          const rimMinor = Math.max(0.42, curlR * 0.9);
+          const rimDrop = Math.max(LID_TOP_DROP_MM * 0.65, rimMinor * 0.75);
+
+          const profile = [
+            new THREE.Vector2(rOut + rimEpsR, rimStartY),
+            new THREE.Vector2(rOut + rimEpsR, rimStartY + rimH * 0.25),
+            new THREE.Vector2(rOut + rimMinor * 0.65, height - rimDrop * 0.4),
+            new THREE.Vector2(capR + rimMinor * 0.45, height - rimDrop),
+            new THREE.Vector2(capR, height - rimDrop - rimMinor * 0.45)
+          ];
+
+          const rimGeo = new THREE.LatheGeometry(profile, RADIAL_SEG);
+          const rim = new THREE.Mesh(rimGeo, rimMat);
+          rim.castShadow = true;
+          g.add(rim);
         }
       }
 
       // Curled edges on OUTSIDE rim
-      const minor = curlR * 0.65;
-      const major = rOut + minor * 0.25;
-
       if(curlBottom && openBottom && !closedBottom){
-        // Push curl further OUTSIDE so it reads as a real rolled edge
         const minorBot = curlR * 0.45;                // a bit slimmer = cleaner
         const majorBot = rOut + minorBot * 0.55;      // more outside = more visible
 
         // Use a cloned material with polygonOffset to avoid z-fighting spikes
         const m = mats.outer.clone();
+        m.side = THREE.FrontSide;
         m.polygonOffset = true;
         m.polygonOffsetFactor = -1;
         m.polygonOffsetUnits  = -1;
 
         const tor = new THREE.Mesh(
-          new THREE.TorusGeometry(majorBot, minorBot, 16, RADIAL_SEG),
+          new THREE.TorusGeometry(majorBot, minorBot, 20, RADIAL_SEG),
           m
         );
 
@@ -579,7 +585,6 @@
         tor.castShadow = true;
         g.add(tor);
       }
-
 
       return g;
     }
