@@ -75,7 +75,7 @@
       <div class="tm-card">
         <div class="tm-tiny">
           <b>Realism details (set in code):</b><br>
-          Paper wall: 1.5 mm · Curled edge: outside rim on base &amp; lid (2‑piece + telescopic) · One‑piece metal end‑caps: ultra‑thin (~1 mm) hint.
+          Paper wall: 1.5 mm · Curled edges: outside rim plus inset top curl (≈2 mm inset, 3 mm drop) on lids for base &amp; lid + telescopic · One‑piece metal end‑caps: ultra‑thin (~1 mm) hint.
         </div>
       </div>
     </div>
@@ -512,87 +512,114 @@
         capB.castShadow = true;
         g.add(capB);
       }
- if(closedTop){
-  // make the top disk ever-so-slightly smaller + offset to avoid z-fighting spikes
-  const EPS_R = 0.4;   // 0.2–0.4 mm usually enough
-  const EPS_Y = 0.3;   // tiny vertical offset
+      if(closedTop){
+        // Slightly smaller + offset to avoid z-fighting spikes
+        const EPS_R = 0.4;   // 0.2–0.4 mm usually enough
+        const EPS_Y = 0.3;   // tiny vertical offset
 
-  const topMat = mats.edge.clone();
-  topMat.polygonOffset = true;
-  topMat.polygonOffsetFactor = -1;
-  topMat.polygonOffsetUnits  = -1;
+        const topMat = mats.edge.clone();
+        topMat.polygonOffset = true;
+        topMat.polygonOffsetFactor = -1;
+        topMat.polygonOffsetUnits  = -1;
 
-  const capT = new THREE.Mesh(
-    new THREE.CylinderGeometry(Math.max(0.1, rOut - EPS_R), Math.max(0.1, rOut - EPS_R), wall, RADIAL_SEG),
-    topMat
-  );
-
-  capT.position.y = (height - wall/2) - EPS_Y;
-  capT.castShadow = true;
-  g.add(capT);
-
-  // optional curled rim on the outside of top edge
-  if(curlTop){
-    const torusTop = new THREE.Mesh(
-      new THREE.TorusGeometry(rOut - curlR*0.65, curlR, Math.max(6, RADIAL_SEG/4), RADIAL_SEG),
-      mats.edge
-    );
-    torusTop.rotation.x = Math.PI/2;
-    torusTop.position.y = height - curlR/2;
-    torusTop.castShadow = true;
-    g.add(torusTop);
-  }
- }
-      if(curlBottom){
-        const torusBot = new THREE.Mesh(
-          new THREE.TorusGeometry(rOut - curlR*0.65, curlR, Math.max(6, RADIAL_SEG/4), RADIAL_SEG),
-          mats.edge
+        const capR = Math.max(0.1, rOut - Math.max(EPS_R, LID_TOP_INSET_MM));
+        const capT = new THREE.Mesh(
+          new THREE.CylinderGeometry(capR, capR, wall, RADIAL_SEG),
+          topMat
         );
-        torusBot.rotation.x = Math.PI/2;
-        torusBot.position.y = curlR/2;
-        torusBot.castShadow = true;
-        g.add(torusBot);
+
+        capT.position.y = Math.max(0, (height - wall/2) - (EPS_Y + LID_TOP_DROP_MM));
+        capT.castShadow = true;
+        g.add(capT);
+
+        if(curlTop){
+          const minor = Math.max(0.35, curlR * 0.7);
+          const major = Math.max(capR + minor * 0.65, minor + 0.5);
+          const rimMat = mats.edge.clone();
+          rimMat.polygonOffset = true;
+          rimMat.polygonOffsetFactor = -1;
+          rimMat.polygonOffsetUnits  = -1;
+
+          const tor = new THREE.Mesh(
+            new THREE.TorusGeometry(major, minor, 20, RADIAL_SEG),
+            rimMat
+          );
+          tor.rotation.x = Math.PI/2;
+          tor.position.y = Math.max(0, height - LID_TOP_DROP_MM - minor * 0.35);
+          tor.castShadow = true;
+          g.add(tor);
+        }
       }
+
+      // Curled edges on OUTSIDE rim
+      const minor = curlR * 0.65;
+      const major = rOut + minor * 0.25;
+
+      if(curlBottom && openBottom && !closedBottom){
+        // Push curl further OUTSIDE so it reads as a real rolled edge
+        const minorBot = curlR * 0.45;                // a bit slimmer = cleaner
+        const majorBot = rOut + minorBot * 0.55;      // more outside = more visible
+
+        // Use a cloned material with polygonOffset to avoid z-fighting spikes
+        const m = mats.outer.clone();
+        m.polygonOffset = true;
+        m.polygonOffsetFactor = -1;
+        m.polygonOffsetUnits  = -1;
+
+        const tor = new THREE.Mesh(
+          new THREE.TorusGeometry(majorBot, minorBot, 16, RADIAL_SEG),
+          m
+        );
+
+        tor.rotation.x = Math.PI/2;
+
+        // IMPORTANT: sit ON the bottom rim (slightly below), not above it
+        tor.position.y = -minorBot * 0.25;
+
+        tor.castShadow = true;
+        g.add(tor);
+      }
+
 
       return g;
     }
 
-    // Simple suggestion of a thin metal end-cap (non-physical)
-    function makeMetalEndCapHint({ rTubeOut, thickness, overhang, rollR, mats }){
+    // One-piece metal end-cap: ultra-thin ~1mm “hint”
+    function makeMetalEndCapHint({
+      rTubeOut,
+      thickness = METAL_LID_THICK_MM,
+      overhang = METAL_LID_OVERHANG_MM,
+      rollR = METAL_LID_ROLL_R,
+      mats
+    }){
       const g = new THREE.Group();
-      const rOuter = rTubeOut + overhang;
-      const rInner = Math.max(0.1, rTubeOut - 0.3);
+      g.userData.height = thickness;
 
-      // face
+      const rDisk = rTubeOut + overhang;
+
       const disk = new THREE.Mesh(
-        new THREE.CylinderGeometry(rOuter, rOuter, thickness, RADIAL_SEG, 1, false),
+        new THREE.CylinderGeometry(rDisk, rDisk, thickness, RADIAL_SEG),
         mats.edge
       );
       disk.position.y = thickness/2;
+      disk.castShadow = true;
       g.add(disk);
 
-      const rim = new THREE.Mesh(
-        new THREE.CylinderGeometry(rOuter, rOuter, rollR*2.2, RADIAL_SEG, 1, true),
+      const roll = new THREE.Mesh(
+        new THREE.TorusGeometry(rDisk + rollR*0.15, rollR, 12, RADIAL_SEG),
         mats.outer
       );
-      rim.position.y = rollR*1.05;
-      g.add(rim);
-
-      // tiny curl on the outer edge
-      const torus = new THREE.Mesh(
-        new THREE.TorusGeometry(rOuter - rollR*0.35, rollR, Math.max(4, RADIAL_SEG/6), RADIAL_SEG),
-        mats.edge
-      );
-      torus.rotation.x = Math.PI/2;
-      torus.position.y = rollR*2.05;
-      g.add(torus);
+      roll.rotation.x = Math.PI/2;
+      roll.position.y = thickness - rollR*0.65;
+      roll.castShadow = true;
+      g.add(roll);
 
       return g;
     }
 
-    function setClosedY(mesh, y){
-      mesh.position.y = y;
-      mesh.userData.closedY = y;
+    function setClosedY(obj, y){
+      obj.userData.closedY = y;
+      obj.position.y = y;
     }
 
     function currentConfig(){
@@ -604,6 +631,7 @@
         openPct: Number(ui.open.value),
         material: ui.material.value,
         colorHex: ui.color.value,
+        wallMm: WALL_MM
       };
     }
 
@@ -740,6 +768,7 @@
           openTop: false,
           openBottom: true,
           closedTop: true,
+          curlTop: true,
           curlBottom: true,
           curlR: PAPER_CURL_R
         });
@@ -800,9 +829,9 @@
         root.add(base);
         parts.base = base;
 
-        const neckR = Math.max(2, (r - WALL_MM * 0.6));
+        const collarR = Math.max(2, r - (WALL_MM + LID_CLEARANCE_MM + 0.4));
         const collar = makeHollowTube({
-          rOut: neckR,
+          rOut: collarR,
           height: neckH,
           wall: Math.max(1.1, WALL_MM*0.95),
           mats: wrapMats,
@@ -817,7 +846,7 @@
         root.add(collar);
         parts.collar = collar;
 
-        const rLid = r + (WALL_MM + LID_CLEARANCE_MM + 0.55);
+        const rLid = r;
         const lid = makeHollowTube({
           rOut: rLid,
           height: lidH,
@@ -826,12 +855,13 @@
           openTop: false,
           openBottom: true,
           closedTop: true,
+          curlTop: true,
           curlBottom: true,
           curlR: PAPER_CURL_R
         });
 
         const plugH = Math.max(10, Math.min(overlap + 6, lidH * 0.8));
-        const plugR = Math.max(2, neckR + 0.3);
+        const plugR = Math.max(2, collarR + 0.35);
         const plug = new THREE.Mesh(
           new THREE.CylinderGeometry(plugR, plugR, plugH, RADIAL_SEG, 1, true),
           new THREE.MeshStandardMaterial({
